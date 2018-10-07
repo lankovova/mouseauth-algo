@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-from Linguistic import linguistic
+from linguistic import linguistic
 
 app = Flask(__name__)
 
@@ -7,19 +7,19 @@ app = Flask(__name__)
 def linguisticRoute():
 	request_data = request.get_json(silent=True)
 
-	if 'timelines' in request_data:
-		timelines = request_data['timelines']
-		if not timelines:
-			return jsonify({ "error": "Timelines should not be empty" }), 400
+	if 'timeline' in request_data:
+		timeline = request_data['timeline']
+		if not timeline:
+			return jsonify({ "error": "Timeline should not be empty" }), 400
 	else:
-		return jsonify({ "error": "Timelines is required" }), 400
+		return jsonify({ "error": "Timeline is required" }), 400
 
 	try:
-		linguisticResponse = linguistic(timelines)
+		linguisticResponse = linguistic(timeline)
 	except:
-		print("Error happened during linguistic algo")
+		return jsonify({ "error": "Error happened during linguistic algo" }), 500
 
-	return jsonify(linguisticResponse)
+	return jsonify(linguisticResponse), 200
 
 if __name__ == "__main__":
 	app.run(debug=True)
