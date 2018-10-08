@@ -16,7 +16,8 @@ def linguisticRoute():
 
 	try:
 		linguisticResponse = linguistic(timeline)
-	except:
+	except Exception as execption:
+		print(execption)
 		return jsonify({ "error": "Error happened during linguistic algo" }), 500
 
 	return jsonify(linguisticResponse), 200

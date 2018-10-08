@@ -36,8 +36,8 @@ def linguistic(timeline):
 			transitionsPD.at[previousLetter, letter] += 1
 		previousLetter = letter
 
-	# TODO: Convert transitions amount into transition chance percentage
-
+	# Convert transitions amount into transition chance percentage
+	transitionsPD = transitionsPD.apply(lambda x: x / x.sum() if x.any() else np.zeros(x.size), axis=1)
 
 	print(transitionsPD.head())
 
