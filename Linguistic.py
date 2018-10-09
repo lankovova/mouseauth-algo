@@ -24,7 +24,7 @@ def mergeTransitionsDFs(left, right):
 
 
 # TODO
-def isTheSamePerson(sourceDF, toCheckDF):
+def isSimilarToSource(sourceDF, toCheckDF):
 	pass
 
 
