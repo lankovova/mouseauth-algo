@@ -19,7 +19,7 @@ def getMovementLetter(value):
 		return LETTERS_LOWERCASE[letterIndex if letterIndex < len(LETTERS_LOWERCASE) else -1]
 
 
-def mergeTransitionsDFs(left, right):
+def mergeGrammarDFs(left, right):
 	return (left + right) / 2
 
 
@@ -28,13 +28,12 @@ def isSimilarToSource(sourceDF, toCheckDF):
 	pass
 
 
-def linguistic(timeline):
+def linguistic(timelines):
 	# Get letters timelines
-	movementXLettersList = [getMovementLetter(timepoint["mX"]) for timepoint in timeline]
-	# movementYLettersList = [getMovementLetter(timepoint["mY"]) for timepoint in timeline]
+	movementXLettersList = [getMovementLetter(timepoint) for timepoint in timelines["mX"]]
 
 	# Initialize empty matrix
-	transitionsPD = pd.DataFrame(
+	grammarDF = pd.DataFrame(
 		np.zeros((2 * LETTERS_AMOUNT, 2 * LETTERS_AMOUNT), dtype=int),
 		index=LETTERS_UPPERCASE+LETTERS_LOWERCASE,
 		columns=LETTERS_UPPERCASE+LETTERS_LOWERCASE
@@ -44,12 +43,12 @@ def linguistic(timeline):
 	previousLetter = None
 	for letter in movementXLettersList:
 		if previousLetter:
-			transitionsPD.at[previousLetter, letter] += 1
+			grammarDF.at[previousLetter, letter] += 1
 		previousLetter = letter
 
 	# Convert transitions amount into transition chance percentage
-	transitionsPD = transitionsPD.apply(lambda x: x / x.sum() if x.any() else np.zeros(x.size), axis=1)
+	grammarDF = grammarDF.apply(lambda x: x / x.sum() if x.any() else np.zeros(x.size), axis=1)
 
 	# print(transitionsPD.head())
 
-	return { "transitions": transitionsPD.reset_index().to_json(orient="records") }
+	return grammarDF.to_json(orient='records')
