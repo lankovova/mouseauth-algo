@@ -1,5 +1,10 @@
 from flask import Flask, jsonify, request
 from linguistic import linguistic
+from pymongo import MongoClient
+
+# TODO Move DB actions to separate module
+client = MongoClient('localhost', 27017)
+db = client.mouseauth
 
 app = Flask(__name__)
 
@@ -7,15 +12,15 @@ app = Flask(__name__)
 def linguisticRoute():
 	request_data = request.get_json(silent=True)
 
-	if 'timeline' in request_data:
-		timeline = request_data['timeline']
-		if not timeline:
-			return jsonify({ "error": "Timeline should not be empty" }), 400
+	if 'timelines' in request_data:
+		timelines = request_data['timelines']
+		if not timelines:
+			return jsonify({ "error": "Timelines should not be empty" }), 400
 	else:
-		return jsonify({ "error": "Timeline is required" }), 400
+		return jsonify({ "error": "Timelines is required" }), 400
 
 	try:
-		linguisticResponse = linguistic(timeline)
+		linguisticResponse = linguistic(timelines)
 	except Exception as execption:
 		print(execption)
 		return jsonify({ "error": "Error happened during linguistic algo" }), 500
