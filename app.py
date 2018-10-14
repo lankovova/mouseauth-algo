@@ -1,10 +1,5 @@
 from flask import Flask, jsonify, request
 from linguistic import linguistic
-from pymongo import MongoClient
-
-# TODO Move DB actions to separate module
-client = MongoClient('localhost', 27017)
-db = client.mouseauth
 
 app = Flask(__name__)
 
@@ -20,7 +15,7 @@ def linguisticRoute():
 		return jsonify({ "error": "Timelines is required" }), 400
 
 	try:
-		linguisticResponse = linguistic(timelines)
+		linguisticResponse = linguistic(timelines=timelines, userID="1") # Change userID to dynamic
 	except Exception as execption:
 		print(execption)
 		return jsonify({ "error": "Error happened during linguistic algo" }), 500

@@ -1,54 +1,70 @@
 import numpy as np
 import pandas as pd
 import string
+import datasource as DS
 
 LETTERS_UPPERCASE = list(string.ascii_uppercase)
 LETTERS_LOWERCASE = list(string.ascii_lowercase)
 LETTERS_AMOUNT = len(LETTERS_UPPERCASE)
 
+FULLNESS_TRAININGS_AMOUNT = 20
+
 MAX_MOVEMENT_VALUE = 500
 MOVEMENT_STEP = MAX_MOVEMENT_VALUE // LETTERS_AMOUNT
 
-
 def getMovementLetter(value):
 	letterIndex = abs(value) // MOVEMENT_STEP
-
 	if value >= 0:
 		return LETTERS_UPPERCASE[letterIndex if letterIndex < len(LETTERS_UPPERCASE) else -1]
 	else:
 		return LETTERS_LOWERCASE[letterIndex if letterIndex < len(LETTERS_LOWERCASE) else -1]
 
-
-def mergeGrammarDFs(left, right):
+def mergeGrammars(left, right):
 	return (left + right) / 2
 
-
 # TODO
-def isSimilarToSource(sourceDF, toCheckDF):
-	pass
+def isSimilar(srcGrammar, toCheckGrammar):
+	return False
 
-
-def linguistic(timelines):
-	# Get letters timelines
-	movementXLettersList = [getMovementLetter(timepoint) for timepoint in timelines["mX"]]
+def formGrammar(timeline, letterPickFn):
+	lettersChain = [letterPickFn(timepoint) for timepoint in timeline]
 
 	# Initialize empty matrix
-	grammarDF = pd.DataFrame(
+	grammar = pd.DataFrame(
 		np.zeros((2 * LETTERS_AMOUNT, 2 * LETTERS_AMOUNT), dtype=int),
-		index=LETTERS_UPPERCASE+LETTERS_LOWERCASE,
-		columns=LETTERS_UPPERCASE+LETTERS_LOWERCASE
+		index=LETTERS_UPPERCASE + LETTERS_LOWERCASE,
+		columns=LETTERS_UPPERCASE + LETTERS_LOWERCASE
 	)
 
 	# Add transitions between letters amount
 	previousLetter = None
-	for letter in movementXLettersList:
+	for letter in lettersChain:
 		if previousLetter:
-			grammarDF.at[previousLetter, letter] += 1
+			grammar.at[previousLetter, letter] += 1
 		previousLetter = letter
 
 	# Convert transitions amount into transition chance percentage
-	grammarDF = grammarDF.apply(lambda x: x / x.sum() if x.any() else np.zeros(x.size), axis=1)
+	return grammar.apply(lambda x: x / x.sum() if x.any() else np.zeros(x.size), axis=1)
 
-	# print(transitionsPD.head())
+def linguistic(timelines, userID):
+	# Generate grammars
+	mxGrammar = formGrammar(timelines["mX"], getMovementLetter)
 
-	return grammarDF.to_json(orient='records')
+	# Get user data
+	userData = DS.getUserData(userID)
+
+	if not userData:
+		# New user
+		DS.addNewUser(userID, { "mX": mxGrammar.to_json() })
+	elif userData["trainings"] < FULLNESS_TRAININGS_AMOUNT:
+		# Train
+		srcMxGrammar = pd.read_json(userData["grammars"]["mX"])
+		updatedMxGrammar = mergeGrammars(srcMxGrammar, mxGrammar)
+
+		DS.trainUser(userID, { "mX": updatedMxGrammar.to_json() })
+	else:
+		# Compare grammars
+		srcMxGrammar = pd.read_json(userData["grammars"]["mX"])
+		return isSimilar(srcMxGrammar, mxGrammar)
+
+	return True
