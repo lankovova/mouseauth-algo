@@ -7,10 +7,14 @@ LETTERS_UPPERCASE = list(string.ascii_uppercase)
 LETTERS_LOWERCASE = list(string.ascii_lowercase)
 LETTERS_AMOUNT = len(LETTERS_UPPERCASE)
 
+LETTERS_TRANSITION_ALLOWABLE_ERROR = 0.2
+GRAMMAR_ALLOWABLE_ERROR = 0.2
+
 FULLNESS_TRAININGS_AMOUNT = 20
 
 MAX_MOVEMENT_VALUE = 500
 MOVEMENT_STEP = MAX_MOVEMENT_VALUE // LETTERS_AMOUNT
+
 
 def getMovementLetter(value):
 	letterIndex = abs(value) // MOVEMENT_STEP
@@ -19,12 +23,20 @@ def getMovementLetter(value):
 	else:
 		return LETTERS_LOWERCASE[letterIndex if letterIndex < len(LETTERS_LOWERCASE) else -1]
 
+
 def mergeGrammars(left, right):
 	return (left + right) / 2
 
-# TODO
+
 def isSimilar(srcGrammar, toCheckGrammar):
-	return False
+	grammarLettersHits = abs(srcGrammar - toCheckGrammar) <= LETTERS_TRANSITION_ALLOWABLE_ERROR
+	elementsAmount = len(srcGrammar.index) * len(srcGrammar.columns)
+	grammarError = abs(elementsAmount - grammarLettersHits.sum().sum()) / elementsAmount
+
+	print(grammarError) # FIXME:
+
+	return grammarError <= GRAMMAR_ALLOWABLE_ERROR
+
 
 def formGrammar(timeline, letterPickFn):
 	lettersChain = [letterPickFn(timepoint) for timepoint in timeline]
@@ -45,6 +57,7 @@ def formGrammar(timeline, letterPickFn):
 
 	# Convert transitions amount into transition chance percentage
 	return grammar.apply(lambda x: x / x.sum() if x.any() else np.zeros(x.size), axis=1)
+
 
 def linguistic(timelines, userID):
 	# Generate grammars
