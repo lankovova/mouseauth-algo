@@ -20,6 +20,8 @@ def linguisticRoute():
 		print(execption)
 		return jsonify({ "error": "Error happened during linguistic algo" }), 500
 
+	print(linguisticResponse)
+
 	return jsonify(linguisticResponse), 200
 
 if __name__ == "__main__":

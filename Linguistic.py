@@ -56,7 +56,7 @@ def formGrammar(timeline, letterPickFn):
 		previousLetter = letter
 
 	# Convert transitions amount into transition chance percentage
-	return grammar.apply(lambda x: x / x.sum() if x.any() else np.zeros(x.size), axis=1)
+	return grammar.apply(lambda x: x / x.sum() if x.any() else x, axis=1)
 
 
 def linguistic(timelines, userID):
