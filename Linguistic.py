@@ -7,8 +7,8 @@ LETTERS_UPPERCASE = list(string.ascii_uppercase)
 LETTERS_LOWERCASE = list(string.ascii_lowercase)
 LETTERS_AMOUNT = len(LETTERS_UPPERCASE)
 
-LETTERS_TRANSITION_ALLOWABLE_ERROR = 0.2
-GRAMMAR_ALLOWABLE_ERROR = 0.2
+LETTERS_TRANSITION_ALLOWABLE_ERROR = 0.05
+GRAMMAR_ALLOWABLE_ERROR = 0.02
 
 FULLNESS_TRAININGS_AMOUNT = 20
 
@@ -31,6 +31,7 @@ def mergeGrammars(left, right):
 def isSimilar(srcGrammar, toCheckGrammar):
 	grammarLettersHits = abs(srcGrammar - toCheckGrammar) <= LETTERS_TRANSITION_ALLOWABLE_ERROR
 	elementsAmount = len(srcGrammar.index) * len(srcGrammar.columns)
+
 	grammarError = abs(elementsAmount - grammarLettersHits.sum().sum()) / elementsAmount
 
 	print(grammarError) # FIXME:
