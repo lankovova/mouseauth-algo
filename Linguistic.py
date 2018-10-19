@@ -12,12 +12,23 @@ GRAMMAR_ALLOWABLE_ERROR = 0.02
 
 FULLNESS_TRAININGS_AMOUNT = 20
 
-MAX_MOVEMENT_VALUE = 500
-MOVEMENT_STEP = MAX_MOVEMENT_VALUE // LETTERS_AMOUNT
+
+def getTimelineDeltas(timeline):
+	timelineDeltas = []
+
+	for index, timepoint in enumerate(timeline):
+		if index + 1 < len(timeline):
+			timelineDeltas.append(timeline[index + 1] - timepoint)
+
+	return timelineDeltas
 
 
-def getMovementLetter(value):
-	letterIndex = abs(value) // MOVEMENT_STEP
+def getLetterStep(timelineDeltas):
+	return max(timelineDeltas) // LETTERS_AMOUNT
+
+
+def getMovementLetter(value, step):
+	letterIndex = abs(value) // step
 	if value >= 0:
 		return LETTERS_UPPERCASE[letterIndex if letterIndex < len(LETTERS_UPPERCASE) else -1]
 	else:
@@ -39,8 +50,11 @@ def isSimilar(srcGrammar, toCheckGrammar):
 	return grammarError <= GRAMMAR_ALLOWABLE_ERROR
 
 
-def formGrammar(timeline, letterPickFn):
-	lettersChain = [letterPickFn(timepoint) for timepoint in timeline]
+def formGrammar(timeline):
+	timelineDeltas = getTimelineDeltas(timeline)
+	letterStep = getLetterStep(timelineDeltas)
+
+	lettersChain = [getMovementLetter(timepointDelta, letterStep) for timepointDelta in timelineDeltas]
 
 	# Initialize empty matrix
 	grammar = pd.DataFrame(
@@ -62,7 +76,7 @@ def formGrammar(timeline, letterPickFn):
 
 def linguistic(timelines, userID):
 	# Generate grammars
-	mxGrammar = formGrammar(timelines["mX"], getMovementLetter)
+	mxGrammar = formGrammar(timelines["mX"])
 
 	# Get user data
 	userData = DS.getUserData(userID)
