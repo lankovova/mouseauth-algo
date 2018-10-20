@@ -27,7 +27,7 @@ def getLetterStep(timelineDeltas):
 	return max(timelineDeltas) // LETTERS_AMOUNT
 
 
-def getMovementLetter(value, step):
+def getLetter(value, step):
 	letterIndex = abs(value) // step
 	if value >= 0:
 		return LETTERS_UPPERCASE[letterIndex if letterIndex < len(LETTERS_UPPERCASE) else -1]
@@ -54,7 +54,7 @@ def formGrammar(timeline):
 	timelineDeltas = getTimelineDeltas(timeline)
 	letterStep = getLetterStep(timelineDeltas)
 
-	lettersChain = [getMovementLetter(timepointDelta, letterStep) for timepointDelta in timelineDeltas]
+	lettersChain = [getLetter(timepointDelta, letterStep) for timepointDelta in timelineDeltas]
 
 	# Initialize empty matrix
 	grammar = pd.DataFrame(
