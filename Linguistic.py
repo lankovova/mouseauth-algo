@@ -39,15 +39,25 @@ def mergeGrammars(left, right):
 	return (left + right) / 2
 
 
-def isSimilar(srcGrammar, toCheckGrammar):
-	grammarLettersHits = abs(srcGrammar - toCheckGrammar) <= LETTERS_TRANSITION_ALLOWABLE_ERROR
+def mergeDictOfGrammars(leftDict, rightDict):
+	return { k: mergeGrammars(v, rightDict[k]) for k, v in leftDict.items() }
+
+
+def getGrammarError(srcGrammar, grammarsToCheck):
+	grammarLettersHits = abs(srcGrammar - grammarsToCheck) <= LETTERS_TRANSITION_ALLOWABLE_ERROR
 	elementsAmount = len(srcGrammar.index) * len(srcGrammar.columns)
 
-	grammarError = abs(elementsAmount - grammarLettersHits.sum().sum()) / elementsAmount
+	return abs(elementsAmount - grammarLettersHits.sum().sum()) / elementsAmount
 
-	print(grammarError) # FIXME:
 
-	return grammarError <= GRAMMAR_ALLOWABLE_ERROR
+def isGrammarsSimilar(srcGrammars, grammarsToCheck):
+	grammarsErrors = { k: getGrammarError(v, grammarsToCheck[k]) for k, v in srcGrammars.items() }
+	print(grammarsErrors)
+
+	# Check if grammars errors is in OK range
+	isGrammarsSimilarDict = { k: v <= GRAMMAR_ALLOWABLE_ERROR for k, v in grammarsErrors.items() }
+
+	return True # FIXME:
 
 
 def formGrammar(timeline):
@@ -74,25 +84,25 @@ def formGrammar(timeline):
 	return grammar.apply(lambda x: x / x.sum() if x.any() else x, axis=1)
 
 
+def formGrammars(timelines):
+	return { k: formGrammar(v) for k, v in timelines.items() }
+
+
 def linguistic(timelines, userID):
-	# Generate grammars
-	mxGrammar = formGrammar(timelines["mX"])
+	grammars = formGrammars(timelines)
 
 	# Get user data
 	userData = DS.getUserData(userID)
 
 	if not userData:
 		# New user
-		DS.addNewUser(userID, { "mX": mxGrammar.to_json() })
+		DS.addNewUser(userID, grammars)
 	elif userData["trainings"] < FULLNESS_TRAININGS_AMOUNT:
-		# Train
-		srcMxGrammar = pd.read_json(userData["grammars"]["mX"])
-		updatedMxGrammar = mergeGrammars(srcMxGrammar, mxGrammar)
-
-		DS.trainUser(userID, { "mX": updatedMxGrammar.to_json() })
+		mergedGrammars = mergeDictOfGrammars(userData["grammars"], grammars)
+		DS.trainUser(userID, mergedGrammars)
 	else:
 		# Compare grammars
-		srcMxGrammar = pd.read_json(userData["grammars"]["mX"])
-		return isSimilar(srcMxGrammar, mxGrammar)
+		compareResults = isGrammarsSimilar(userData["grammars"], grammars)
+		return compareResults
 
 	return True
