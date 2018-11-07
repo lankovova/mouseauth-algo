@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import datasource as DS
 import constants as c
+import math
 
 def getTimelineDeltas(timeline):
 	timelineDeltas = []
@@ -23,7 +24,7 @@ def getLetter(value, step):
 
 def formGrammar(timeline):
 	timelineDeltas = getTimelineDeltas(timeline)
-	letterStep = max(timelineDeltas) // c.LETTERS_AMOUNT
+	letterStep = math.ceil(max(timelineDeltas) / c.LETTERS_AMOUNT)
 
 	lettersChain = [getLetter(timepointDelta, letterStep) for timepointDelta in timelineDeltas]
 
@@ -66,12 +67,25 @@ def getGrammarError(srcGrammar, grammarsToCheck):
 
 def isGrammarsSimilar(srcGrammars, grammarsToCheck):
 	grammarsErrors = { k: getGrammarError(v, grammarsToCheck[k]) for k, v in srcGrammars.items() }
-	print(grammarsErrors)
+	print('old', grammarsErrors)
 
 	# Check if grammars errors is in OK range
 	isGrammarsSimilarDict = { k: v <= c.GRAMMAR_ALLOWABLE_ERROR for k, v in grammarsErrors.items() }
 
 	return True # FIXME:
+
+
+# TODO
+def TODO_getGrammarAbsoluteError(srcGrammar, grammarToCheck):
+	diffGrammar = abs(grammarToCheck - srcGrammar)
+	return diffGrammar.values.sum() / (2 * len(diffGrammar.index) * len(diffGrammar.index))
+
+
+# TODO
+def TODO_getGrammarsAbsoluteError(srcGrammars, grammarsToCheck):
+	grammarsSimilarity = { k: TODO_getGrammarAbsoluteError(v, grammarsToCheck[k]) for k, v in srcGrammars.items() }
+	print('new', grammarsSimilarity)
+	pass
 
 
 def linguistic(timelines, userID):
@@ -80,7 +94,7 @@ def linguistic(timelines, userID):
 	# Get user data
 	userSourceData = DS.getUserData(userID)
 
-	if not userSourceData:
+	if userSourceData is None:
 		# New user
 		DS.addNewUser(userID, currentGrammars)
 	elif userSourceData["trainings"] < c.FULLNESS_TRAININGS_AMOUNT:
@@ -88,6 +102,7 @@ def linguistic(timelines, userID):
 		DS.trainUser(userID, mergedGrammars)
 	else:
 		# Compare grammars
+		TODO_getGrammarsAbsoluteError(userSourceData["grammars"], currentGrammars)
 		return isGrammarsSimilar(userSourceData["grammars"], currentGrammars)
 
 	return True

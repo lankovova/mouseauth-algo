@@ -13,6 +13,9 @@ def grammarsFromJson(jsonGrammars):
 def getUserData(userID):
 	userData = DB.users.find_one({ "id": userID })
 
+	if userData is None:
+		return None
+
 	return {
 		"id": userData["id"],
 		"grammars": grammarsFromJson(userData["grammars"]),
