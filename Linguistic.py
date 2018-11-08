@@ -4,6 +4,25 @@ import datasource as DS
 import constants as c
 import math
 
+def getLinguisticRule(timeline):
+	timelineDeltas = sorted(getTimelineDeltas(timeline))
+	print(timelineDeltas)
+	minDelta = timelineDeltas[0]
+	maxDelta = timelineDeltas[-1]
+
+	negativeIntervalLength = minDelta // c.LETTERS_AMOUNT
+	positiveIntervalLength = math.ceil(maxDelta / c.LETTERS_AMOUNT)
+
+	print('min', minDelta, 'max', maxDelta)
+	print('negativeIntervalLength', negativeIntervalLength, 'positiveIntervalLength', positiveIntervalLength)
+
+	print('-------------------------------------------')
+	pass
+
+
+def getLinguisticRules(timelines):
+	return { k: getLinguisticRule(v) for k, v in timelines.items() }
+
 def getTimelineDeltas(timeline):
 	timelineDeltas = []
 
@@ -89,20 +108,26 @@ def TODO_getGrammarsAbsoluteError(srcGrammars, grammarsToCheck):
 
 
 def linguistic(timelines, userID):
-	currentGrammars = formGrammars(timelines)
-
 	# Get user data
 	userSourceData = DS.getUserData(userID)
 
-	if userSourceData is None:
-		# New user
-		DS.addNewUser(userID, currentGrammars)
-	elif userSourceData["trainings"] < c.FULLNESS_TRAININGS_AMOUNT:
-		mergedGrammars = mergeDictOfGrammars(userSourceData["grammars"], currentGrammars)
-		DS.trainUser(userID, mergedGrammars)
-	else:
-		# Compare grammars
-		TODO_getGrammarsAbsoluteError(userSourceData["grammars"], currentGrammars)
-		return isGrammarsSimilar(userSourceData["grammars"], currentGrammars)
+	# TODO: Form linguistic rules for each timeline
+	rules = getLinguisticRules(timelines)
+
+	print('rules', rules)
+
+	# Form grammars
+	# currentGrammars = formGrammars(timelines)
+
+	# if userSourceData is None:
+	# 	# New user
+	# 	DS.addNewUser(userID, currentGrammars)
+	# elif userSourceData["trainings"] < c.FULLNESS_TRAININGS_AMOUNT:
+	# 	mergedGrammars = mergeDictOfGrammars(userSourceData["grammars"], currentGrammars)
+	# 	DS.trainUser(userID, mergedGrammars)
+	# else:
+	# 	# Compare grammars
+	# 	TODO_getGrammarsAbsoluteError(userSourceData["grammars"], currentGrammars)
+	# 	return isGrammarsSimilar(userSourceData["grammars"], currentGrammars)
 
 	return True
