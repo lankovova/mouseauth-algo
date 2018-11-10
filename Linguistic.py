@@ -22,6 +22,13 @@ def getLinguisticRule(timeline):
 def getLinguisticRules(timelines):
 	return { k: getLinguisticRule(v) for k, v in timelines.items() }
 
+def mergeRule(prevRule, currentRule):
+	return { k: (v + currentRule[k]) // 2 for k, v in prevRule.items() }
+
+def mergeRules(prevRules, currentRules):
+	return { k: mergeRule(v, currentRules[k]) for k, v in prevRules.items() }
+
+
 def getTimelineDeltas(timeline):
 	timelineDeltas = []
 
@@ -127,18 +134,19 @@ def linguistic(timelines, userID):
 		DS.addNewUser(userID, initialGrammars, rules)
 		return True
 
-	rules = userSourceData["rules"]
-	previousGrammars = userSourceData["grammars"]
-	currentGrammars = formGrammars(timelines, rules)
-
 	if userSourceData["trainings"] < c.FULLNESS_TRAININGS_AMOUNT:
-		# FIXME: currentRules = getLinguisticRules(timelines)
-		mergedGrammars = mergeDictOfGrammars(previousGrammars, currentGrammars)
-		DS.trainUser(userID, mergedGrammars)
-	else:
-		# Compare grammars
-		# FIXME: Compare two error algos
-		TODO_getGrammarsAbsoluteError(previousGrammars, currentGrammars)
-		return isGrammarsSimilar(previousGrammars, currentGrammars)
+		currentRules = getLinguisticRules(timelines)
+		mergedRules = mergeRules(userSourceData["rules"], currentRules)
 
-	return True
+		currentGrammars = formGrammars(timelines, mergedRules)
+		mergedGrammars = mergeDictOfGrammars(userSourceData["grammars"], currentGrammars)
+
+		DS.trainUser(userID, mergedGrammars, mergedRules)
+		return True
+
+	# Compare grammars
+	# FIXME: Compare two error algos
+	currentGrammars = formGrammars(timelines, userSourceData["rules"])
+
+	TODO_getGrammarsAbsoluteError(userSourceData["grammars"], currentGrammars)
+	return isGrammarsSimilar(userSourceData["grammars"], currentGrammars)

@@ -31,10 +31,11 @@ def addNewUser(userID, grammars, rules):
 		"rules": rules,
 	})
 
-def trainUser(userID, grammars):
+def trainUser(userID, grammars, rules):
 	return DB.users.update_one({
 		"id": userID
 	}, {
 		"$set": { "grammars": grammarsToJson(grammars) },
+		"$set": { "rules": rules },
 		"$inc": { "trainings": 1 }
 	})
