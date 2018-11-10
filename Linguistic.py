@@ -5,19 +5,18 @@ import constants as c
 import math
 
 def getLinguisticRule(timeline):
-	timelineDeltas = sorted(getTimelineDeltas(timeline))
-	print(timelineDeltas)
-	minDelta = timelineDeltas[0]
-	maxDelta = timelineDeltas[-1]
+	timelineDeltas = getTimelineDeltas(timeline)
+	sortedTimelineDeltas = sorted(timelineDeltas)
+	minDelta = abs(sortedTimelineDeltas[0])
+	maxDelta = sortedTimelineDeltas[-1]
 
-	negativeIntervalLength = minDelta // c.LETTERS_AMOUNT
-	positiveIntervalLength = math.ceil(maxDelta / c.LETTERS_AMOUNT)
+	negativeIntervalLength = math.ceil(minDelta / (c.LETTERS_AMOUNT - 1))
+	positiveIntervalLength = math.ceil(maxDelta / (c.LETTERS_AMOUNT - 1))
 
-	print('min', minDelta, 'max', maxDelta)
-	print('negativeIntervalLength', negativeIntervalLength, 'positiveIntervalLength', positiveIntervalLength)
-
-	print('-------------------------------------------')
-	pass
+	return {
+		'negativeIntervalLength': negativeIntervalLength,
+		'positiveIntervalLength': positiveIntervalLength,
+	}
 
 
 def getLinguisticRules(timelines):
@@ -33,25 +32,31 @@ def getTimelineDeltas(timeline):
 	return timelineDeltas
 
 
-def getLetter(value, step):
-	letterIndex = abs(value) // step
-	if value >= 0:
+def getLetter(value, rule):
+	if value == 0:
+		return 'null'
+	elif value > 0:
+		letterIndex = (value - 1) // rule['positiveIntervalLength']
 		return c.LETTERS_UPPERCASE[letterIndex if letterIndex < len(c.LETTERS_UPPERCASE) else -1]
 	else:
+		letterIndex = (abs(value) - 1) // rule['negativeIntervalLength']
 		return c.LETTERS_LOWERCASE[letterIndex if letterIndex < len(c.LETTERS_LOWERCASE) else -1]
 
 
-def formGrammar(timeline):
+def formGrammar(timeline, rule):
 	timelineDeltas = getTimelineDeltas(timeline)
-	letterStep = math.ceil(max(timelineDeltas) / c.LETTERS_AMOUNT)
 
-	lettersChain = [getLetter(timepointDelta, letterStep) for timepointDelta in timelineDeltas]
+	lettersChain = [getLetter(timepointDelta, rule) for timepointDelta in timelineDeltas]
+
+	print(timelineDeltas)
+	print(lettersChain)
+	print('=======================================')
 
 	# Initialize empty matrix
 	grammar = pd.DataFrame(
-		np.zeros((2 * c.LETTERS_AMOUNT, 2 * c.LETTERS_AMOUNT), dtype=int),
-		index=c.LETTERS_UPPERCASE + c.LETTERS_LOWERCASE,
-		columns=c.LETTERS_UPPERCASE + c.LETTERS_LOWERCASE
+		np.zeros((2 * c.LETTERS_AMOUNT + 1, 2 * c.LETTERS_AMOUNT + 1), dtype=int),
+		index=['null']+c.LETTERS_UPPERCASE + c.LETTERS_LOWERCASE,
+		columns=['null']+c.LETTERS_UPPERCASE + c.LETTERS_LOWERCASE
 	)
 
 	# Add transitions between letters amount
@@ -65,8 +70,8 @@ def formGrammar(timeline):
 	return grammar.apply(lambda x: x / x.sum() if x.any() else x, axis=1)
 
 
-def formGrammars(timelines):
-	return { k: formGrammar(v) for k, v in timelines.items() }
+def formGrammars(timelines, rules):
+	return { k: formGrammar(v, rules[k]) for k, v in timelines.items() }
 
 
 def mergeGrammars(left, right):
@@ -75,6 +80,8 @@ def mergeGrammars(left, right):
 
 def mergeDictOfGrammars(leftDict, rightDict):
 	return { k: mergeGrammars(v, rightDict[k]) for k, v in leftDict.items() }
+
+
 
 
 def getGrammarError(srcGrammar, grammarsToCheck):
@@ -107,27 +114,31 @@ def TODO_getGrammarsAbsoluteError(srcGrammars, grammarsToCheck):
 	pass
 
 
+
+
 def linguistic(timelines, userID):
 	# Get user data
 	userSourceData = DS.getUserData(userID)
 
-	# TODO: Form linguistic rules for each timeline
-	rules = getLinguisticRules(timelines)
+	if userSourceData is None:
+		# New user
+		rules = getLinguisticRules(timelines)
+		initialGrammars = formGrammars(timelines, rules)
+		DS.addNewUser(userID, initialGrammars, rules)
+		return True
 
-	print('rules', rules)
+	rules = userSourceData["rules"]
+	previousGrammars = userSourceData["grammars"]
+	currentGrammars = formGrammars(timelines, rules)
 
-	# Form grammars
-	# currentGrammars = formGrammars(timelines)
-
-	# if userSourceData is None:
-	# 	# New user
-	# 	DS.addNewUser(userID, currentGrammars)
-	# elif userSourceData["trainings"] < c.FULLNESS_TRAININGS_AMOUNT:
-	# 	mergedGrammars = mergeDictOfGrammars(userSourceData["grammars"], currentGrammars)
-	# 	DS.trainUser(userID, mergedGrammars)
-	# else:
-	# 	# Compare grammars
-	# 	TODO_getGrammarsAbsoluteError(userSourceData["grammars"], currentGrammars)
-	# 	return isGrammarsSimilar(userSourceData["grammars"], currentGrammars)
+	if userSourceData["trainings"] < c.FULLNESS_TRAININGS_AMOUNT:
+		# FIXME: currentRules = getLinguisticRules(timelines)
+		mergedGrammars = mergeDictOfGrammars(previousGrammars, currentGrammars)
+		DS.trainUser(userID, mergedGrammars)
+	else:
+		# Compare grammars
+		# FIXME: Compare two error algos
+		TODO_getGrammarsAbsoluteError(previousGrammars, currentGrammars)
+		return isGrammarsSimilar(previousGrammars, currentGrammars)
 
 	return True

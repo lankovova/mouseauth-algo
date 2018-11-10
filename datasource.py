@@ -19,14 +19,16 @@ def getUserData(userID):
 	return {
 		"id": userData["id"],
 		"grammars": grammarsFromJson(userData["grammars"]),
-		"trainings": userData["trainings"]
+		"trainings": userData["trainings"],
+		"rules": userData["rules"]
 	}
 
-def addNewUser(userID, grammars):
+def addNewUser(userID, grammars, rules):
 	return DB.users.insert_one({
 		"id": userID,
 		"grammars": grammarsToJson(grammars),
 		"trainings": 1,
+		"rules": rules,
 	})
 
 def trainUser(userID, grammars):
