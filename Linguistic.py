@@ -100,7 +100,7 @@ def getGrammarError(srcGrammar, grammarsToCheck):
 
 def isGrammarsSimilar(srcGrammars, grammarsToCheck):
 	grammarsErrors = { k: getGrammarError(v, grammarsToCheck[k]) for k, v in srcGrammars.items() }
-	print('old', grammarsErrors)
+	print('old', { k: str(round(v * 100, 2)) + '%' for k, v in grammarsErrors.items() })
 
 	# Check if grammars errors is in OK range
 	isGrammarsSimilarDict = { k: v <= c.GRAMMAR_ALLOWABLE_ERROR for k, v in grammarsErrors.items() }
@@ -117,7 +117,7 @@ def TODO_getGrammarAbsoluteError(srcGrammar, grammarToCheck):
 # TODO
 def TODO_getGrammarsAbsoluteError(srcGrammars, grammarsToCheck):
 	grammarsSimilarity = { k: TODO_getGrammarAbsoluteError(v, grammarsToCheck[k]) for k, v in srcGrammars.items() }
-	print('new', grammarsSimilarity)
+	print('new', { k: str(round(v * 100, 2)) + '%' for k, v in grammarsSimilarity.items() })
 	pass
 
 
@@ -131,6 +131,7 @@ def linguistic(timelines, userID):
 		# New user
 		rules = getLinguisticRules(timelines)
 		initialGrammars = formGrammars(timelines, rules)
+
 		DS.addNewUser(userID, initialGrammars, rules)
 		return True
 
