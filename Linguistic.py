@@ -18,7 +18,6 @@ def getLinguisticRule(timeline):
 		'positiveIntervalLength': positiveIntervalLength,
 	}
 
-
 def getLinguisticRules(timelines):
 	return { k: getLinguisticRule(v) for k, v in timelines.items() }
 
@@ -28,7 +27,6 @@ def mergeRule(prevRule, currentRule):
 def mergeRules(prevRules, currentRules):
 	return { k: mergeRule(v, currentRules[k]) for k, v in prevRules.items() }
 
-
 def getTimelineDeltas(timeline):
 	timelineDeltas = []
 
@@ -37,7 +35,6 @@ def getTimelineDeltas(timeline):
 			timelineDeltas.append(timeline[index + 1] - timepoint)
 
 	return timelineDeltas
-
 
 def getLetter(value, rule):
 	if value == 0:
@@ -49,21 +46,19 @@ def getLetter(value, rule):
 		letterIndex = (abs(value) - 1) // rule['negativeIntervalLength']
 		return c.LETTERS_LOWERCASE[letterIndex if letterIndex < len(c.LETTERS_LOWERCASE) else -1]
 
-
 def formGrammar(timeline, rule):
 	timelineDeltas = getTimelineDeltas(timeline)
 
 	lettersChain = [getLetter(timepointDelta, rule) for timepointDelta in timelineDeltas]
 
-	print(timelineDeltas)
 	print(lettersChain)
 	print('=======================================')
 
 	# Initialize empty matrix
 	grammar = pd.DataFrame(
 		np.zeros((2 * c.LETTERS_AMOUNT + 1, 2 * c.LETTERS_AMOUNT + 1), dtype=int),
-		index=['null']+c.LETTERS_UPPERCASE + c.LETTERS_LOWERCASE,
-		columns=['null']+c.LETTERS_UPPERCASE + c.LETTERS_LOWERCASE
+		index=c.TRANSITION_MATRIX_INDEXES,
+		columns=c.TRANSITION_MATRIX_INDEXES
 	)
 
 	# Add transitions between letters amount
@@ -76,27 +71,20 @@ def formGrammar(timeline, rule):
 	# Convert transitions amount into transition chance percentage
 	return grammar.apply(lambda x: x / x.sum() if x.any() else x, axis=1)
 
-
 def formGrammars(timelines, rules):
 	return { k: formGrammar(v, rules[k]) for k, v in timelines.items() }
-
 
 def mergeGrammars(left, right):
 	return (left + right) / 2
 
-
 def mergeDictOfGrammars(leftDict, rightDict):
 	return { k: mergeGrammars(v, rightDict[k]) for k, v in leftDict.items() }
-
-
-
 
 def getGrammarError(srcGrammar, grammarsToCheck):
 	grammarLettersHits = abs(srcGrammar - grammarsToCheck) <= c.LETTERS_TRANSITION_ALLOWABLE_ERROR
 	elementsAmount = len(srcGrammar.index) * len(srcGrammar.columns)
 
 	return abs(elementsAmount - grammarLettersHits.sum().sum()) / elementsAmount
-
 
 def isGrammarsSimilar(srcGrammars, grammarsToCheck):
 	grammarsErrors = { k: getGrammarError(v, grammarsToCheck[k]) for k, v in srcGrammars.items() }
@@ -107,21 +95,16 @@ def isGrammarsSimilar(srcGrammars, grammarsToCheck):
 
 	return True # FIXME:
 
-
 # TODO
 def TODO_getGrammarAbsoluteError(srcGrammar, grammarToCheck):
 	diffGrammar = abs(grammarToCheck - srcGrammar)
-	return diffGrammar.values.sum() / (2 * len(diffGrammar.index) * len(diffGrammar.index))
-
+	return diffGrammar.values.sum() / (len(diffGrammar.index) * len(diffGrammar.index))
 
 # TODO
 def TODO_getGrammarsAbsoluteError(srcGrammars, grammarsToCheck):
 	grammarsSimilarity = { k: TODO_getGrammarAbsoluteError(v, grammarsToCheck[k]) for k, v in srcGrammars.items() }
 	print('new', { k: str(round(v * 100, 2)) + '%' for k, v in grammarsSimilarity.items() })
 	pass
-
-
-
 
 def linguistic(timelines, userID):
 	# Get user data
