@@ -126,13 +126,6 @@ def linguistic(timelines, userID):
 		currentGrammars = formGrammars(timelines, mergedRules)
 		mergedGrammars = mergeDictOfGrammars(userSourceData["grammars"], currentGrammars)
 
-		print('previous =============================')
-		utils.printGrammar(userSourceData["grammars"])
-		print('current =============================')
-		utils.printGrammar(currentGrammars)
-		print('merged =============================')
-		utils.printGrammar(mergedGrammars)
-
 		DS.trainUser(userID, mergedGrammars, mergedRules)
 		return True
 
