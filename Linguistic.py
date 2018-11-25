@@ -99,7 +99,7 @@ def isGrammarsSimilar(srcGrammars, grammarsToCheck):
 # TODO
 def TODO_getGrammarAbsoluteError(srcGrammar, grammarToCheck):
 	diffGrammar = abs(grammarToCheck - srcGrammar)
-	return diffGrammar.values.sum() / (len(diffGrammar.index) * len(diffGrammar.index))
+	return diffGrammar.values.sum() / (2 * len(diffGrammar.index))
 
 # TODO
 def TODO_getGrammarsAbsoluteError(srcGrammars, grammarsToCheck):
@@ -133,8 +133,8 @@ def linguistic(timelines, userID):
 	# FIXME: Compare two error algos
 	currentGrammars = formGrammars(timelines, userSourceData["rules"])
 
-	# print(userSourceData["grammars"])
-	# print(currentGrammars)
+	utils.printGrammar(userSourceData["grammars"])
+	utils.printGrammar(currentGrammars)
 
 	TODO_getGrammarsAbsoluteError(userSourceData["grammars"], currentGrammars)
 	return isGrammarsSimilar(userSourceData["grammars"], currentGrammars)
