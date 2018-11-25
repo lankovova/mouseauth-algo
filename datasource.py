@@ -1,14 +1,15 @@
 from pandas import read_json
 from pymongo import MongoClient
+import pandas as pd
 
 client = MongoClient('localhost', 27017)
 DB = client.mouseauth
 
-def grammarsToJson(grammars):
-	return { k: g.to_json() for k, g in grammars.items() }
+def grammarsToDict(grammars):
+	return { k: g.to_dict() for k, g in grammars.items() }
 
-def grammarsFromJson(jsonGrammars):
-	return { k: read_json(g) for k, g in jsonGrammars.items() }
+def grammarsFromDict(grammars):
+	return { k: pd.DataFrame.from_dict(g) for k, g in grammars.items() }
 
 def getUserData(userID):
 	userData = DB.users.find_one({ "id": userID })
@@ -18,7 +19,7 @@ def getUserData(userID):
 
 	return {
 		"id": userData["id"],
-		"grammars": grammarsFromJson(userData["grammars"]),
+		"grammars": grammarsFromDict(userData["grammars"]),
 		"trainings": userData["trainings"],
 		"rules": userData["rules"]
 	}
@@ -26,7 +27,7 @@ def getUserData(userID):
 def addNewUser(userID, grammars, rules):
 	return DB.users.insert_one({
 		"id": userID,
-		"grammars": grammarsToJson(grammars),
+		"grammars": grammarsToDict(grammars),
 		"trainings": 1,
 		"rules": rules,
 	})
@@ -35,7 +36,7 @@ def trainUser(userID, grammars, rules):
 	return DB.users.update_one({
 		"id": userID
 	}, {
-		"$set": { "grammars": grammarsToJson(grammars) },
+		"$set": { "grammars": grammarsToDict(grammars) },
 		"$set": { "rules": rules },
 		"$inc": { "trainings": 1 }
 	})

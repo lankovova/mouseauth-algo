@@ -3,6 +3,7 @@ import pandas as pd
 import datasource as DS
 import constants as c
 import math
+import utils
 
 def getLinguisticRule(timeline):
 	timelineDeltas = getTimelineDeltas(timeline)
@@ -125,12 +126,22 @@ def linguistic(timelines, userID):
 		currentGrammars = formGrammars(timelines, mergedRules)
 		mergedGrammars = mergeDictOfGrammars(userSourceData["grammars"], currentGrammars)
 
+		print('previous =============================')
+		utils.printGrammar(userSourceData["grammars"])
+		print('current =============================')
+		utils.printGrammar(currentGrammars)
+		print('merged =============================')
+		utils.printGrammar(mergedGrammars)
+
 		DS.trainUser(userID, mergedGrammars, mergedRules)
 		return True
 
 	# Compare grammars
 	# FIXME: Compare two error algos
 	currentGrammars = formGrammars(timelines, userSourceData["rules"])
+
+	# print(userSourceData["grammars"])
+	# print(currentGrammars)
 
 	TODO_getGrammarsAbsoluteError(userSourceData["grammars"], currentGrammars)
 	return isGrammarsSimilar(userSourceData["grammars"], currentGrammars)
