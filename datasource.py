@@ -36,7 +36,9 @@ def trainUser(userID, grammars, rules):
 	return DB.users.update_one({
 		"id": userID
 	}, {
-		"$set": { "grammars": grammarsToDict(grammars) },
-		"$set": { "rules": rules },
+		"$set": {
+			"grammars": grammarsToDict(grammars),
+			"rules": rules
+		},
 		"$inc": { "trainings": 1 }
 	})
