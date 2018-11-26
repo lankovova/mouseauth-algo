@@ -6,10 +6,10 @@ client = MongoClient('localhost', 27017)
 DB = client.mouseauth
 
 def grammarsToDict(grammars):
-	return { k: g.to_dict() for k, g in grammars.items() }
+	return { k: g.to_dict('index') for k, g in grammars.items() }
 
 def grammarsFromDict(grammars):
-	return { k: pd.DataFrame.from_dict(g) for k, g in grammars.items() }
+	return { k: pd.DataFrame.from_dict(g, orient='index') for k, g in grammars.items() }
 
 def getUserData(userID):
 	userData = DB.users.find_one({ "id": userID })
