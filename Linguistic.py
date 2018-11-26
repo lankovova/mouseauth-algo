@@ -52,8 +52,8 @@ def formGrammar(timeline, rule):
 
 	lettersChain = [getLetter(timepointDelta, rule) for timepointDelta in timelineDeltas]
 
-	print(lettersChain)
-	print('=======================================')
+	print(' '.join(lettersChain))
+	print('============================================')
 
 	# Initialize empty matrix
 	grammar = pd.DataFrame(
@@ -76,7 +76,8 @@ def formGrammars(timelines, rules):
 	return { k: formGrammar(v, rules[k]) for k, v in timelines.items() }
 
 def mergeGrammars(left, right):
-	return (left + right) / 2
+	summedUp = left + right
+	return summedUp.apply(lambda x: x / 2 if x.sum() > 1 else x, axis=1)
 
 def mergeDictOfGrammars(leftDict, rightDict):
 	return { k: mergeGrammars(v, rightDict[k]) for k, v in leftDict.items() }
