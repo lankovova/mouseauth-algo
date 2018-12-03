@@ -15,15 +15,12 @@ def linguisticRoute():
 		return jsonify({ "error": "Timelines is required" }), 400
 
 	try:
-		isUserOK = linguistic(timelines=timelines, userID="TEST") # Change userID to dynamic
+		resultCode = linguistic(timelines=timelines, userID="TEST") # Change userID to dynamic
 	except Exception as execption:
 		print(execption)
 		return jsonify({ "error": "Error happened during linguistic algo" }), 500
 
-	if isUserOK:
-		return jsonify({ "message": "User is OK!" }), 200
-
-	return jsonify({ "message": "Wrong user"}), 200
+	return jsonify(resultCode), 200
 
 if __name__ == "__main__":
 	app.run(debug=True)

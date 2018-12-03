@@ -5,6 +5,15 @@ import constants as c
 import math
 import utils
 
+def getTimelineDeltas(timeline):
+	timelineDeltas = []
+
+	for index, timepoint in enumerate(timeline):
+		if index + 1 < len(timeline):
+			timelineDeltas.append(timeline[index + 1] - timepoint)
+
+	return timelineDeltas
+
 def getLinguisticRule(timeline):
 	timelineDeltas = getTimelineDeltas(timeline)
 	sortedTimelineDeltas = sorted(timelineDeltas)
@@ -27,15 +36,6 @@ def mergeRule(prevRule, currentRule):
 
 def mergeRules(prevRules, currentRules):
 	return { k: mergeRule(v, currentRules[k]) for k, v in prevRules.items() }
-
-def getTimelineDeltas(timeline):
-	timelineDeltas = []
-
-	for index, timepoint in enumerate(timeline):
-		if index + 1 < len(timeline):
-			timelineDeltas.append(timeline[index + 1] - timepoint)
-
-	return timelineDeltas
 
 def getLetter(value, rule):
 	if value == 0:
@@ -108,6 +108,16 @@ def TODO_getGrammarsAbsoluteError(srcGrammars, grammarsToCheck):
 	print('new', { k: str(round(v * 100, 2)) + '%' for k, v in grammarsSimilarity.items() })
 	pass
 
+def TODO_zerosAndOncesGrammarComparison(srcGrammar, grammarToCheck):
+	summedUp = srcGrammar + grammarToCheck
+	zeroesInSimilarPositionsAmount = (summedUp == 0).sum(axis=1).sum()
+	error = zeroesInSimilarPositionsAmount / (len(srcGrammar.index) * len(srcGrammar.index))
+	return error
+
+def TODO_zerosAndOncesGrammarsComparison(srcGrammars, grammarsToCheck):
+	zerosAndOncesSimilarity = { k: TODO_zerosAndOncesGrammarComparison(v, grammarsToCheck[k]) for k, v in srcGrammars.items() }
+	print('zerosSimilarityError', { k: str(round(v * 100, 2)) + '%' for k, v in zerosAndOncesSimilarity.items() })
+
 def linguistic(timelines, userID):
 	# Get user data
 	userSourceData = DS.getUserData(userID)
@@ -118,7 +128,7 @@ def linguistic(timelines, userID):
 		initialGrammars = formGrammars(timelines, rules)
 
 		DS.addNewUser(userID, initialGrammars, rules)
-		return True
+		return { "code": "training" }
 
 	if userSourceData["trainings"] < c.FULLNESS_TRAININGS_AMOUNT:
 		currentRules = getLinguisticRules(timelines)
@@ -128,14 +138,19 @@ def linguistic(timelines, userID):
 		mergedGrammars = mergeDictOfGrammars(userSourceData["grammars"], currentGrammars)
 
 		DS.trainUser(userID, mergedGrammars, mergedRules)
-		return True
+		return { "code": "training" }
 
 	# Compare grammars
 	# FIXME: Compare two error algos
 	currentGrammars = formGrammars(timelines, userSourceData["rules"])
 
+	print('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
 	utils.printGrammar(userSourceData["grammars"])
 	utils.printGrammar(currentGrammars)
 
-	TODO_getGrammarsAbsoluteError(userSourceData["grammars"], currentGrammars)
-	return isGrammarsSimilar(userSourceData["grammars"], currentGrammars)
+	# TODO_getGrammarsAbsoluteError(userSourceData["grammars"], currentGrammars)
+	# isGrammarsSimilar(userSourceData["grammars"], currentGrammars)
+	TODO_zerosAndOncesGrammarsComparison(userSourceData["grammars"], currentGrammars)
+
+	return { "code": "ok" }
+	# return { "code": "bad" }

@@ -1,4 +1,3 @@
-from pandas import read_json
 from pymongo import MongoClient
 import pandas as pd
 
