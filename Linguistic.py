@@ -108,15 +108,15 @@ def TODO_getGrammarsAbsoluteError(srcGrammars, grammarsToCheck):
 	print('new', { k: str(round(v * 100, 2)) + '%' for k, v in grammarsSimilarity.items() })
 	pass
 
-def TODO_zerosAndOncesGrammarComparison(srcGrammar, grammarToCheck):
+def TODO_zerosGrammarComparison(srcGrammar, grammarToCheck):
 	summedUp = srcGrammar + grammarToCheck
 	zeroesInSimilarPositionsAmount = (summedUp == 0).sum(axis=1).sum()
-	error = zeroesInSimilarPositionsAmount / (len(srcGrammar.index) * len(srcGrammar.index))
-	return error
+	similarityIndex = zeroesInSimilarPositionsAmount / (len(srcGrammar.index) * len(srcGrammar.index))
+	return similarityIndex
 
-def TODO_zerosAndOncesGrammarsComparison(srcGrammars, grammarsToCheck):
-	zerosAndOncesSimilarity = { k: TODO_zerosAndOncesGrammarComparison(v, grammarsToCheck[k]) for k, v in srcGrammars.items() }
-	print('zerosSimilarityError', { k: str(round(v * 100, 2)) + '%' for k, v in zerosAndOncesSimilarity.items() })
+def TODO_zerosGrammarsComparison(srcGrammars, grammarsToCheck):
+	zerosAndOncesSimilarity = { k: TODO_zerosGrammarComparison(v, grammarsToCheck[k]) for k, v in srcGrammars.items() }
+	print('zerosSimilarityIndex', { k: str(round(v * 100, 2)) + '%' for k, v in zerosAndOncesSimilarity.items() })
 
 def linguistic(timelines, userID):
 	# Get user data
@@ -150,7 +150,7 @@ def linguistic(timelines, userID):
 
 	# TODO_getGrammarsAbsoluteError(userSourceData["grammars"], currentGrammars)
 	# isGrammarsSimilar(userSourceData["grammars"], currentGrammars)
-	TODO_zerosAndOncesGrammarsComparison(userSourceData["grammars"], currentGrammars)
+	TODO_zerosGrammarsComparison(userSourceData["grammars"], currentGrammars)
 
 	return { "code": "ok" }
 	# return { "code": "bad" }
