@@ -32,7 +32,7 @@ def getLinguisticRules(timelines):
 	return { k: getLinguisticRule(v) for k, v in timelines.items() }
 
 def mergeRule(prevRule, currentRule):
-	return { k: (v + currentRule[k]) // 2 for k, v in prevRule.items() }
+	return { k: round((v + currentRule[k]) / 2) for k, v in prevRule.items() }
 
 def mergeRules(prevRules, currentRules):
 	return { k: mergeRule(v, currentRules[k]) for k, v in prevRules.items() }
@@ -57,7 +57,7 @@ def formGrammar(timeline, rule):
 
 	# Initialize empty matrix
 	grammar = pd.DataFrame(
-		np.zeros((2 * c.LETTERS_AMOUNT + 1, 2 * c.LETTERS_AMOUNT + 1), dtype=int),
+		np.zeros((len(c.TRANSITION_MATRIX_INDEXES), len(c.TRANSITION_MATRIX_INDEXES)), dtype=int),
 		index=c.TRANSITION_MATRIX_INDEXES,
 		columns=c.TRANSITION_MATRIX_INDEXES
 	)
@@ -90,12 +90,12 @@ def getGrammarError(srcGrammar, grammarsToCheck):
 
 def isGrammarsSimilar(srcGrammars, grammarsToCheck):
 	grammarsErrors = { k: getGrammarError(v, grammarsToCheck[k]) for k, v in srcGrammars.items() }
-	print('old', { k: str(round(v * 100, 2)) + '%' for k, v in grammarsErrors.items() })
+	utils.printDictInPercents('mine grammarsError', grammarsErrors)
 
 	# Check if grammars errors is in OK range
 	isGrammarsSimilarDict = { k: v <= c.GRAMMAR_ALLOWABLE_ERROR for k, v in grammarsErrors.items() }
 
-	return True # FIXME:
+	return True # FIXME
 
 # TODO
 def TODO_getGrammarAbsoluteError(srcGrammar, grammarToCheck):
@@ -105,7 +105,7 @@ def TODO_getGrammarAbsoluteError(srcGrammar, grammarToCheck):
 # TODO
 def TODO_getGrammarsAbsoluteError(srcGrammars, grammarsToCheck):
 	grammarsSimilarity = { k: TODO_getGrammarAbsoluteError(v, grammarsToCheck[k]) for k, v in srcGrammars.items() }
-	print('new', { k: str(round(v * 100, 2)) + '%' for k, v in grammarsSimilarity.items() })
+	utils.printDictInPercents('grammarsAbsoluteError', grammarsSimilarity)
 	pass
 
 def TODO_zerosGrammarComparison(srcGrammar, grammarToCheck):
@@ -116,7 +116,7 @@ def TODO_zerosGrammarComparison(srcGrammar, grammarToCheck):
 
 def TODO_zerosGrammarsComparison(srcGrammars, grammarsToCheck):
 	zerosAndOncesSimilarity = { k: TODO_zerosGrammarComparison(v, grammarsToCheck[k]) for k, v in srcGrammars.items() }
-	print('zerosSimilarityIndex', { k: str(round(v * 100, 2)) + '%' for k, v in zerosAndOncesSimilarity.items() })
+	utils.printDictInPercents('zerosAndOncesSimilarity', zerosAndOncesSimilarity)
 
 def linguistic(timelines, userID):
 	# Get user data
@@ -148,8 +148,8 @@ def linguistic(timelines, userID):
 	utils.printGrammar(userSourceData["grammars"])
 	utils.printGrammar(currentGrammars)
 
-	# TODO_getGrammarsAbsoluteError(userSourceData["grammars"], currentGrammars)
-	# isGrammarsSimilar(userSourceData["grammars"], currentGrammars)
+	TODO_getGrammarsAbsoluteError(userSourceData["grammars"], currentGrammars)
+	isGrammarsSimilar(userSourceData["grammars"], currentGrammars)
 	TODO_zerosGrammarsComparison(userSourceData["grammars"], currentGrammars)
 
 	return { "code": "ok" }
