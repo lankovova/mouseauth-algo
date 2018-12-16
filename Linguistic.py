@@ -82,41 +82,56 @@ def mergeGrammars(left, right):
 def mergeDictOfGrammars(leftDict, rightDict):
 	return { k: mergeGrammars(v, rightDict[k]) for k, v in leftDict.items() }
 
-def getGrammarError(srcGrammar, grammarsToCheck):
-	grammarLettersHits = abs(srcGrammar - grammarsToCheck) <= c.LETTERS_TRANSITION_ALLOWABLE_ERROR
-	elementsAmount = len(srcGrammar.index) * len(srcGrammar.columns)
-
-	return abs(elementsAmount - grammarLettersHits.sum().sum()) / elementsAmount
-
-def isGrammarsSimilar(srcGrammars, grammarsToCheck):
-	grammarsErrors = { k: getGrammarError(v, grammarsToCheck[k]) for k, v in srcGrammars.items() }
-	utils.printDictInPercents('mine grammarsError', grammarsErrors)
-
-	# Check if grammars errors is in OK range
-	isGrammarsSimilarDict = { k: v <= c.GRAMMAR_ALLOWABLE_ERROR for k, v in grammarsErrors.items() }
-
-	return True # FIXME
-
-# TODO
-def TODO_getGrammarAbsoluteError(srcGrammar, grammarToCheck):
+def getGrammarAbsoluteError(srcGrammar, grammarToCheck):
 	diffGrammar = abs(grammarToCheck - srcGrammar)
 	return diffGrammar.values.sum() / (2 * len(diffGrammar.index))
 
-# TODO
-def TODO_getGrammarsAbsoluteError(srcGrammars, grammarsToCheck):
-	grammarsSimilarity = { k: TODO_getGrammarAbsoluteError(v, grammarsToCheck[k]) for k, v in srcGrammars.items() }
-	utils.printDictInPercents('grammarsAbsoluteError', grammarsSimilarity)
-	pass
+def getGrammarsAbsoluteError(srcGrammars, grammarsToCheck):
+	grammarsAbsoluteError = { k: getGrammarAbsoluteError(v, grammarsToCheck[k]) for k, v in srcGrammars.items() }
+	utils.printDictInPercents('grammarsAbsoluteError', grammarsAbsoluteError)
 
-def TODO_zerosGrammarComparison(srcGrammar, grammarToCheck):
+	averageAbsError = sum(grammarsAbsoluteError.values()) / len(grammarsAbsoluteError)
+	print('averageAbsError', averageAbsError)
+	return averageAbsError
+
+def zerosGrammarComparison(srcGrammar, grammarToCheck):
 	summedUp = srcGrammar + grammarToCheck
 	zeroesInSimilarPositionsAmount = (summedUp == 0).sum(axis=1).sum()
 	similarityIndex = zeroesInSimilarPositionsAmount / (len(srcGrammar.index) * len(srcGrammar.index))
 	return similarityIndex
 
-def TODO_zerosGrammarsComparison(srcGrammars, grammarsToCheck):
-	zerosAndOncesSimilarity = { k: TODO_zerosGrammarComparison(v, grammarsToCheck[k]) for k, v in srcGrammars.items() }
+def zerosGrammarsComparison(srcGrammars, grammarsToCheck):
+	zerosAndOncesSimilarity = { k: zerosGrammarComparison(v, grammarsToCheck[k]) for k, v in srcGrammars.items() }
 	utils.printDictInPercents('zerosAndOncesSimilarity', zerosAndOncesSimilarity)
+
+	averageZerosSimilarity = sum(zerosAndOncesSimilarity.values()) / len(zerosAndOncesSimilarity)
+	print('averageZerosSimilarity', averageZerosSimilarity)
+	return averageZerosSimilarity
+
+def highlighOutOfRangeInputInGrammar(grammar):
+	grammar.at['z', 'Z'] = grammar.at['z', 'Z'] * 4
+	grammar.at['z', 'z'] = grammar.at['z', 'z'] * 4
+	grammar.at['Z', 'Z'] = grammar.at['Z', 'Z'] * 4
+	grammar.at['Z', 'z'] = grammar.at['Z', 'z'] * 4
+
+	return grammar
+
+def highlighOutOfRangeInputInGrammars(grammars):
+	return { k: highlighOutOfRangeInputInGrammar(v) for k, v in grammars.items() }
+
+def isGrammarsSimilar(srcGrammras, grammarsToCheck):
+	grammarsWithHighlightedOutOfRangeInput = highlighOutOfRangeInputInGrammars(grammarsToCheck)
+
+	averageAbsError = getGrammarsAbsoluteError(srcGrammras, grammarsWithHighlightedOutOfRangeInput)
+	averageZerosSimilarity = zerosGrammarsComparison(srcGrammras, grammarsWithHighlightedOutOfRangeInput)
+
+	if (averageAbsError > 0.7):
+		return False
+
+	if (averageZerosSimilarity < 0.3):
+		return False
+
+	return True
 
 def linguistic(timelines, userID):
 	# Get user data
@@ -140,17 +155,10 @@ def linguistic(timelines, userID):
 		DS.trainUser(userID, mergedGrammars, mergedRules)
 		return { "code": "training" }
 
-	# Compare grammars
-	# FIXME: Compare two error algos
+	# Comparing grammars
 	currentGrammars = formGrammars(timelines, userSourceData["rules"])
 
-	print('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-	utils.printGrammar(userSourceData["grammars"])
-	utils.printGrammar(currentGrammars)
+	if isGrammarsSimilar(userSourceData["grammars"], currentGrammars):
+		return { "code": "ok" }
 
-	TODO_getGrammarsAbsoluteError(userSourceData["grammars"], currentGrammars)
-	isGrammarsSimilar(userSourceData["grammars"], currentGrammars)
-	TODO_zerosGrammarsComparison(userSourceData["grammars"], currentGrammars)
-
-	return { "code": "ok" }
-	# return { "code": "bad" }
+	return { "code": "bad" }

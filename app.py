@@ -15,7 +15,7 @@ def linguisticRoute():
 		return jsonify({ "error": "Timelines is required" }), 400
 
 	try:
-		resultCode = linguistic(timelines=timelines, userID="TEST") # Change userID to dynamic
+		resultCode = linguistic(timelines=timelines, userID="highlightOutOfRange") # Change userID to dynamic
 	except Exception as execption:
 		print(execption)
 		return jsonify({ "error": "Error happened during linguistic algo" }), 500
